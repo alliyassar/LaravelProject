@@ -15,5 +15,16 @@ class Product extends Model
         'description',
         'price',
         'stock'
-    ];
+    ]; // <-- Dizi burada güvenle kapanıyor kanka
+
+    // Fonksiyonlar dizinin DIŞINDA, sınıfın İÇİNDE olmalı:
+    public function carts()
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }
