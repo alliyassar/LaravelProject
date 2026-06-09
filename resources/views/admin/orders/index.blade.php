@@ -1,95 +1,99 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders List</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+@extends('admin.layout')
 
-<div class="container mt-5">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Orders List</h4>
-            <span class="badge bg-light text-dark">Admin Panel</span>
-        </div>
-        <div class="card-body">
-            @if(session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-
-            <form action="{{ route('admin.orders.index') }}" method="GET" class="row g-3 mb-4 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Filter by Status</label>
-                    <select name="status" class="form-select">
-                        <option value="">All Orders</option>
-                        @foreach($statuses as $item)
-                            <option value="{{ $item }}" {{ $status == $item ? 'selected' : '' }}>{{ $item }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                    <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">Clear</a>
-                </div>
-            </form>
-
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Customer</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($orders as $order)
-                            <tr>
-                                <td>{{ $order->id }}</td>
-                                <td class="fw-bold">{{ $order->name }}</td>
-                                <td>{{ $order->email }}</td>
-                                <td>{{ $order->phone ?? '-' }}</td>
-                                <td class="text-success fw-bold">${{ number_format($order->total, 2) }}</td>
-                                <td>
-                                    @if($order->status == 'New')
-                                        <span class="badge bg-info text-dark">New</span>
-                                    @elseif($order->status == 'Accepted')
-                                        <span class="badge bg-primary">Accepted</span>
-                                    @elseif($order->status == 'Cancelled')
-                                        <span class="badge bg-danger">Cancelled</span>
-                                    @elseif($order->status == 'Onshipping')
-                                        <span class="badge bg-warning text-dark">Onshipping</span>
-                                    @elseif($order->status == 'Completed')
-                                        <span class="badge bg-success">Completed</span>
-                                    @endif
-                                </td>
-                                <td>{{ $order->created_at->format('m/d/Y H:i') }}</td>
-                                <td>
-                                    <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-primary">Show</a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">No orders found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-3">
-                {{ $orders->links() }}
-            </div>
-        </div>
-    </div>
+@section('header')
+<div class="row mb-2">
+  <div class="col-sm-6">
+    <h1 class="m-0">Orders Management</h1>
+  </div>
+  <div class="col-sm-6">
+    <ol class="breadcrumb float-sm-right">
+      <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Home</a></li>
+      <li class="breadcrumb-item active">Orders</li>
+    </ol>
+  </div>
 </div>
+@endsection
 
-</body>
-</html>
+@section('content')
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-dark">
+        <h3 class="card-title">All Customer Orders</h3>
+      </div>
+      <div class="card-body">
+        
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h5><i class="icon fas fa-check"></i> Success!</h5>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <table id="example1" class="table table-bordered table-striped table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Total Price</th>
+              <th>Order Status</th>
+              <th>Order Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($orders as $order)
+              <tr>
+                <td>{{ $order->id }}</td>
+                <td><b>{{ $order->name }}</b></td>
+                <td>{{ $order->email }}</td>
+                <td>{{ $order->phone ?? '-' }}</td>
+                <td class="text-success font-weight-bold">${{ number_format($order->total, 2) }}</td>
+                <td>
+                  @if($order->status == 'New')
+                    <span class="badge badge-info text-uppercase p-2">New</span>
+                  @elseif($order->status == 'Accepted')
+                    <span class="badge badge-primary text-uppercase p-2">Accepted</span>
+                  @elseif($order->status == 'Cancelled')
+                    <span class="badge badge-danger text-uppercase p-2">Cancelled</span>
+                  @elseif($order->status == 'Onshipping')
+                    <span class="badge badge-warning text-uppercase p-2">Onshipping</span>
+                  @else
+                    <span class="badge badge-success text-uppercase p-2">Completed</span>
+                  @endif
+                </td>
+                <td>{{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '-' }}</td>
+                <td class="text-center">
+                  <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-info btn-flat">
+                    <i class="fas fa-eye"></i> Show Details
+                  </a>
+                </td>
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+  $(function () {
+    // Tabloyu akıllı hale getiren, arama kutusunu ve excel butonlarını ekleyen sihirli tetikleyici
+    $("#example1").DataTable({
+      "responsive": true, 
+      "lengthChange": true, 
+      "autoWidth": false,
+      "ordering": true,
+      "order": [[0, "desc"]], // En yeni siparişi en üstte gösterir kanka
+      "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+  });
+</script>
+@endsection

@@ -1,104 +1,120 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Detail</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+@extends('admin.layout')
 
-<div class="container mt-5 mb-5">
-    <div class="card shadow">
-        <div class="card-header bg-dark text-white">
-            <h4 class="mb-0">Order Detail #{{ $order->id }}</h4>
-        </div>
-        <div class="card-body">
-            @if(session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
+@section('header')
+<div class="d-flex justify-content-between align-items-center">
+    <h1>Order Detail #{{ $order->id }}</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-0">
+            <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.orders.index') }}">Orders</a></li>
+            <li class="breadcrumb-item active">Order Detail</li>
+        </ol>
+    </nav>
+</div>
+@endsection
 
-            <div class="row">
-                <div class="col-md-6">
-                    <h5 class="border-bottom pb-2 mb-3 text-primary">Customer Information</h5>
-                    <table class="table table-sm table-borderless">
-                        <tr><td style="width: 120px;"><strong>Name:</strong></td><td>{{ $order->name }}</td></tr>
-                        <tr><td><strong>Email:</strong></td><td>{{ $order->email }}</td></tr>
-                        <tr><td><strong>Phone:</strong></td><td>{{ $order->phone ?? '-' }}</td></tr>
-                        <tr><td><strong>Address:</strong></td><td>{{ $order->address }}</td></tr>
-                        <tr><td><strong>City/Country:</strong></td><td>{{ $order->city }} / {{ $order->country }}</td></tr>
-                    </table>
-                </div>
-
-                <div class="col-md-6">
-                    <h5 class="border-bottom pb-2 mb-3 text-primary">Order Information</h5>
-                    <table class="table table-sm table-borderless">
-                        <tr><td style="width: 150px;"><strong>Payment Method:</strong></td><td>{{ $order->payment_method }}</td></tr>
-                        <tr><td><strong>Shipping Method:</strong></td><td>{{ $order->shipping_method }}</td></tr>
-                        <tr><td><strong>Order Date:</strong></td><td>{{ $order->created_at->format('m/d/Y H:i') }}</td></tr>
-                    </table>
-
-                    <div class="p-3 bg-light rounded border mt-3">
-                        <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
-                            @csrf
-                            <label class="form-label fw-bold">Update Order Status</label>
-                            <div class="input-group">
-                                <select name="status" class="form-select">
-                                    @foreach($statuses as $status)
-                                        <option value="{{ $status }}" {{ $order->status == $status ? 'selected' : '' }}>{{ $status }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="submit" class="btn btn-success">Update Status</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+@section('content')
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm rounded-0">
+            <div class="card-header bg-dark text-white rounded-0">
+                <h3 class="card-title"><i class="fas fa-user me-2"></i> Customer Information</h3>
             </div>
-
-            <h5 class="border-bottom pb-2 mb-3 mt-5 text-primary">Order Items</h5>
-            <div class="table-responsive">
-                <table class="table table-bordered align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Product ID</th>
-                            <th>Product Title</th>
-                            <th>Price</th>
-                            <th>Quantity</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($order->items as $item)
-                            <tr>
-                                <td>{{ $item->product_id ?? 'Deleted' }}</td>
-                                <td class="fw-bold">{{ $item->product_title }}</td>
-                                <td>${{ number_format($item->price, 2) }}</td>
-                                <td>{{ $item->quantity }}</td>
-                                <td class="fw-bold text-dark">${{ number_format($item->total, 2) }}</td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="text-center text-muted">No order items found.</td></tr>
-                        @endforelse
-                    </tbody>
+            <div class="card-body p-0">
+                <table class="table table-bordered m-0">
+                    <tr>
+                        <th style="width: 30%;">Name</th>
+                        <td>{{ $order->name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td>{{ $order->email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Phone</th>
+                        <td>{{ $order->phone ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Address</th>
+                        <td>{{ $order->address }}</td>
+                    </tr>
+                    <tr>
+                        <th>City</th>
+                        <td>{{ $order->city ?? 'Istanbul' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Country</th>
+                        <td>{{ $order->country ?? 'Turkiye' }}</td>
+                    </tr>
+                    <tr>
+                        <th>ZIP Code</th>
+                        <td>{{ $order->zip_code ?? '-' }}</td>
+                    </tr>
                 </table>
             </div>
+        </div>
+    </div>
 
-            <div class="row justify-content-end mt-4">
-                <div class="col-md-4">
-                    <div class="bg-light p-3 rounded border">
-                        <p class="d-flex justify-content-between mb-2"><span>Subtotal:</span> <span>${{ number_format($order->subtotal, 2) }}</span></p>
-                        <p class="d-flex justify-content-between mb-2"><span>Shipping:</span> <span>${{ number_format($order->shipping_price, 2) }}</span></p>
-                        <h5 class="d-flex justify-content-between border-top pt-2 mt-2 text-success"><span>Total:</span> <strong>${{ number_format($order->total, 2) }}</strong></h5>
-                    </div>
-                </div>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm rounded-0">
+            <div class="card-header bg-dark text-white rounded-0">
+                <h3 class="card-title"><i class="fas fa-file-invoice me-2"></i> Order Information</h3>
             </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered m-0">
+                    <tr>
+                        <th style="width: 30%;">Order ID</th>
+                        <td>{{ $order->id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Current Status</th>
+                        <td>
+                            <span class="badge badge-{{ $order->status == 'New' ? 'info' : ($order->status == 'Accepted' ? 'primary' : ($order->status == 'Cancelled' ? 'danger' : ($order->status == 'Onshipping' ? 'warning' : 'success'))) }} p-2 rounded-0 text-uppercase">
+                                {{ $order->status }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Payment Method</th>
+                        <td>Direct Bank Transfer</td>
+                    </tr>
+                    <tr>
+                        <th>Shipping Method</th>
+                        <td>Free Shipping</td>
+                    </tr>
+                    <tr>
+                        <th>Order Date</th>
+                        <td>{{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Subtotal</th>
+                        <td>${{ number_format($order->total, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total</th>
+                        <td class="text-danger fw-bold">${{ number_format($order->total, 2) }}</td>
+                    </tr>
+                </table>
+                
+                <div class="p-3 bg-light border-top">
+                    <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+                        @csrf
+                        <label class="form-label fw-bold small text-uppercase text-secondary">Change Status</label>
+                        <div class="input-group">
+                            <select name="status" class="form-control rounded-0">
+                                <option value="New" {{ $order->status == 'New' ? 'selected' : '' }}>New</option>
+                                <option value="Accepted" {{ $order->status == 'Accepted' ? 'selected' : '' }}>Accepted</option>
+                                <option value="Cancelled" {{ $order->status == 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                <option value="Onshipping" {{ $order->status == 'Onshipping' ? 'selected' : '' }}>Onshipping</option>
+                                <option value="Completed" {{ $order->status == 'Completed' ? 'selected' : '' }}>Completed</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary rounded-0 px-4">Update</button>
+                        </div>
+                    </form>
+                </div>
 
-            <div class="mt-4">
-                <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">Back to Orders</a>
             </div>
         </div>
     </div>
 </div>
-
-</body>
-</html>
+@endsection

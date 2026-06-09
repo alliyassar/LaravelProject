@@ -13,6 +13,11 @@ class DatabaseSeeder extends Seeder
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Product::truncate();
+        
+        // Siparişler tablosu varsa, çakışma olmasın diye onun içini de sıfırlıyoruz kral
+        if (Schema::hasTable('orders')) {
+            DB::table('orders')->truncate();
+        }
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Tüm ürünlerin resimleri klasöründeki isimlerle %100 harfi harfine senkronize edildi
@@ -71,14 +76,14 @@ class DatabaseSeeder extends Seeder
                 'price' => 2499.00,
                 'category' => '2',
                 'description' => 'Advanced acoustic noise cancellation units delivering high-fidelity audio frequencies.',
-                'image' => 'Noise-canceling headphones.webp' // Yeni kulaklık resmin cuk diye buraya oturdu
+                'image' => 'Noise-canceling headphones.webp'
             ],
             [
                 'name' => 'Nike shoe',
                 'price' => 999.00,
                 'category' => '3',
                 'description' => 'Sports-oriented footwear engineered with shock absorption and ergonomic sole structures.',
-                'image' => 'Nike shoe.webp' // Yeni ayakkabı resmin cuk diye buraya oturdu
+                'image' => 'Nike shoe.webp'
             ]
         ];
 
@@ -89,6 +94,7 @@ class DatabaseSeeder extends Seeder
         $hasStock = Schema::hasColumn('products', 'stock');
         $hasStatus = Schema::hasColumn('products', 'status');
 
+        // 1. ÜRÜNLERİ VERİTABANINA YAZAN DÖNGÜ
         foreach ($productsData as $data) {
             $product = new Product();
             $product->name = $data['name'];
@@ -111,6 +117,34 @@ class DatabaseSeeder extends Seeder
             if ($hasStatus) { $product->status = 'active'; }
 
             $product->save();
+        }
+
+        // 2. TABLONUN BOŞ KALMAMASI İÇİN SİPARİŞ TEST VERİLERİ (TAM BURAYA EKLENDİ)
+        if (Schema::hasTable('orders')) {
+            DB::table('orders')->insert([
+                [
+                    'id' => 1,
+                    'name' => 'Admin User',
+                    'email' => 'admin@mysite.com',
+                    'phone' => '5551234567',
+                    'address' => 'Nisantasi unv kampus room 5',
+                    'total' => 10000.00,
+                    'status' => 'Accepted',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'id' => 2,
+                    'name' => 'Yuksel Celik',
+                    'email' => 'yuksel@gmail.com',
+                    'phone' => '5557654321',
+                    'address' => 'Nisantasi unv kampus room 5',
+                    'total' => 2499.00,
+                    'status' => 'New',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            ]);
         }
     }
 }
