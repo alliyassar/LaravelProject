@@ -1,145 +1,168 @@
-@php
- use App\Models\Cart;
- $headerCartItems = collect();
- $headerCartCount = 0;
- $headerCartTotal = 0;
- if (auth()->check()) {
-     $headerCartItems = Cart::with('product')
-         ->where('user_id', auth()->id())
-         ->get();
-     $headerCartCount = $headerCartItems->sum('quantity');
-     $headerCartTotal = $headerCartItems->sum(function ($item) {
-         return $item->price * $item->quantity;
-     });
- }
-@endphp
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'NovaStore E-Commerce')</title>
+    <title>E-SHOP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    
     <style>
-        .dropdown-list { display: none; position: absolute; background: white; list-style: none; padding: 10px; border: 1px solid #ddd; z-index: 1000; right: 0; min-width: 160px; }
-        .user-hover:hover .dropdown-list { display: block; }
-        .minicart-wrap { position: relative; }
-        .cart-list-wrapper { display: none; position: absolute; background: white; border: 1px solid #ddd; width: 300px; right: 0; z-index: 1000; padding: 15px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); }
-        .minicart-wrap:hover .cart-list-wrapper { display: block; }
-        .cart-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; }
-        .cart-list li { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .nav-link { color: #333; font-weight: 500; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #FBFBFC; }
+        .top-header { background-color: #1E1F29; color: #B9BABC; font-size: 12px; padding: 7px 0; }
+        .top-header a { color: #B9BABC; text-decoration: none; }
+        .top-header a:hover { color: #D10024; }
+        
+        .main-header { background-color: #15161D; padding: 25px 0; border-bottom: 3px solid #D10024; }
+        .logo-text { color: #FFFFFF; font-weight: 700; font-size: 34px; text-decoration: none; }
+        .logo-text span { color: #D10024; }
+        
+        .search-btn { background-color: #D10024; color: white; border: none; font-weight: 700; padding: 0 25px; }
+        .search-btn:hover { background-color: #a8001c; color: white; }
+        
+        .navigation-bar { background-color: #FFFFFF; border-bottom: 2px solid #E4E7ED; padding: 15px 0; }
+        .category-trigger { background-color: #FF6600; color: white; font-weight: 700; text-transform: uppercase; padding: 10px 20px; border: none; }
+        
+        .user-dropdown .dropdown-toggle { color: #FFFFFF; text-decoration: none; font-weight: 500; }
+        .user-dropdown .dropdown-menu { background-color: #FFFFFF; border-radius: 0; border: 1px solid #E4E7ED; box-shadow: 0px 6px 12px rgba(0,0,0,0.1); }
+        
+        footer { background-color: #15161D; color: #B9BABC; padding: 60px 0 20px 0; font-size: 14px; margin-top: 50px; }
+        footer h3 { color: #FFFFFF; font-weight: 700; font-size: 16px; margin-bottom: 25px; text-transform: uppercase; border-bottom: 2px solid #D10024; padding-bottom: 10px; display: inline-block; }
+        footer a { color: #B9BABC; text-decoration: none; }
+        footer a:hover { color: #D10024; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
-    <div class="container">
-        <a class="navbar-brand fw-bold text-primary" href="{{ url('/') }}">NovaStore</a>
-        
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Home</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="catDrop" role="button" data-bs-toggle="dropdown">Categories</a>
-                    <ul class="dropdown-menu">
-                        @forelse($categories as $cat)
-                            <li><a class="dropdown-menu-item p-2 d-block text-dark text-decoration-none" href="#">{{ $cat->title }}</a></li>
-                        @empty
-                            <li><a class="dropdown-menu-item p-2 d-block text-muted" href="#">No Categories</a></li>
-                        @endforelse
-                    </ul>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="{{ route('admin.orders.index') }}">Admin Panel</a></li>
-            </ul>
-
-            <div class="header-configure-area">
-                <ul class="nav align-items-center">
-                    
-                    <li class="user-hover position-relative me-4">
-                        <a href="#" class="text-decoration-none text-dark fw-bold">
-                            <i class="fa-regular fa-user me-1"></i>
-                            @auth
-                                {{ auth()->user()->name }} 
-                            @else
-                                My Account 
-                            @endauth
-                        </a>
-                        <ul class="dropdown-list shadow rounded">
-                            @auth
-                                <li class="mb-2"><a href="#" class="text-decoration-none text-dark d-block">My Account</a></li>
-                                <li class="mb-2"><a href="{{ route('cart.index') }}" class="text-decoration-none text-dark d-block">My Cart</a></li>
-                                <li class="mb-2"><a href="{{ route('checkout') }}" class="text-decoration-none text-dark d-block">Checkout</a></li>
-                                <li class="border-top pt-2">
-                                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-danger w-100">Logout</button>
-                                    </form>
-                                </li>
-                            @else
-                                <li class="mb-2"><a href="{{ url('/login') }}" class="btn btn-sm btn-primary w-100">Login</a></li>
-                                <li><a href="{{ url('/register') }}" class="text-decoration-none text-muted small d-block text-center">Join / Register</a></li>
-                            @endauth
-                        </ul>
-                    </li>
-                    
-                    <li class="minicart-wrap">
-                        <a href="{{ route('cart.index') }}" class="btn btn-outline-dark btn-sm position-relative">
-                            <i class="fa-solid fa-bag-shopping me-1"></i> My Cart
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                {{ $headerCartCount }}
-                            </span>
-                        </a>
-                        <div class="cart-list-wrapper shadow rounded">
-                            <h6 class="border-bottom pb-2 fw-bold">Mini Cart</h6>
-                            <ul class="cart-list">
-                                @auth
-                                    @forelse($headerCartItems as $item)
-                                        <li>
-                                            <div class="cart-info">
-                                                <h6 class="mb-0 fw-bold" style="font-size: 14px;">{{ $item->product->title ?? 'Product Deleted' }}</h6>
-                                                <small class="text-muted">${{ number_format($item->price, 2) }} x{{ $item->quantity }}</small>
-                                            </div>
-                                            <form action="{{ route('cart.remove', $item->id) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn p-0 text-danger"><i class="fa-solid fa-trash-can"></i></button>
-                                            </form>
-                                        </li>
-                                    @empty
-                                        <li class="p-2 text-muted text-center">Your cart is empty.</li>
-                                    @endforelse
-                                @else
-                                    <li class="p-2 text-muted text-center">Please login to view cart.</li>
-                                @endauth
-                            </ul>
-                            <div class="cart-price-total d-flex justify-content-between my-2 border-top pt-2">
-                                <span>Subtotal:</span>
-                                <strong class="text-success">${{ number_format($headerCartTotal, 2) }}</strong>
-                            </div>
-                            <div class="d-grid gap-2 mt-2">
-                                <a href="{{ route('cart.index') }}" class="btn btn-sm btn-dark">View Cart</a>
-                                <a href="{{ route('checkout') }}" class="btn btn-sm btn-primary">Checkout</a>
-                            </div>
-                        </div>
-                    </li>
-
-                </ul>
+    <div class="top-header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>Welcome to E-shop!</div>
+            <div class="d-flex gap-3">
+                <a href="#">STORE</a>
+                <a href="#">NEWSLETTER</a>
+                <a href="#">FAQ</a>
+                <span class="text-muted">ENG <i class="fa fa-caret-down"></i></span>
+                <span class="text-muted">USD <i class="fa fa-caret-down"></i></span>
             </div>
         </div>
     </div>
-</nav>
 
-<main class="py-4">
-    @yield('content')
-</main>
+    <div class="main-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <a href="{{ route('home') }}" class="logo-text">E-<span>SHOP</span></a>
+                </div>
+                
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <form action="{{ route('home') }}" method="GET">
+                        <div class="input-group">
+                            <select name="category" class="form-select border-0 bg-white" style="max-width: 150px;">
+                                <option value="">All Categories</option>
+                                <option value="1">Laptops</option>
+                                <option value="2">Smartphones</option>
+                                <option value="3">Cameras</option>
+                            </select>
+                            <input type="text" name="search" class="form-control border-0" placeholder="Enter your keyword" value="{{ request('search') }}">
+                            <button class="btn search-btn" type="submit"><i class="fa fa-search"></i></button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="col-md-3 d-flex justify-content-end align-items-center gap-4">
+                    <div class="dropdown user-dropdown">
+                        @auth
+                            <a class="dropdown-toggle text-white text-decoration-none fw-bold small text-uppercase" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-regular fa-user me-2 text-white"></i>{{ auth()->user()->name }} <br><span class="text-muted" style="font-size: 10px; font-weight: normal;">WELCOME</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end p-3" style="min-width: 200px; z-index: 9999;">
+                                <li class="mb-2"><a href="{{ route('my.orders') }}" class="dropdown-item fw-bold text-danger"><i class="fa-solid fa-box me-2"></i>MY ORDERS</a></li>
+                                <li class="mb-2"><a href="{{ route('cart.index') }}" class="dropdown-item"><i class="fa-solid fa-shopping-cart me-2"></i>MY CART</a></li>
+                                <li class="mb-2"><a href="{{ route('checkout') }}" class="dropdown-item"><i class="fa-solid fa-credit-card me-2"></i>CHECKOUT</a></li>
+                                <li class="border-top pt-2 mt-2">
+                                    <form action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-dark w-100 fw-bold">LOGOUT</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        @else
+                            <a class="dropdown-toggle text-white text-decoration-none fw-bold small" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-regular fa-user me-2"></i>ACCOUNT <br><span class="text-muted" style="font-size: 10px; font-weight: normal;">Sign In / Up</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end p-2">
+                                <li><a class="dropdown-item fw-bold" href="{{ route('login') }}">Login</a></li>
+                                <li><a class="dropdown-item" href="{{ route('register') }}">Register</a></li>
+                            </ul>
+                        @endauth
+                    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                    <a href="{{ route('cart.index') }}" class="text-white text-decoration-none d-flex align-items-center">
+                        <i class="fa-solid fa-shopping-cart fs-4"></i>
+                        <span class="text-uppercase ms-2 d-none d-lg-inline small fw-bold" style="font-size: 11px;">My Cart</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation-bar mb-4">
+        <div class="container d-flex align-items-center gap-3">
+            <div class="dropdown">
+                <button class="category-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-bars me-2"></i> Categories
+                </button>
+                <ul class="dropdown-menu rounded-0 shadow-sm border-0 mt-2" style="background-color: #15161D; min-width: 200px; border-top: 3px solid #D10024;">
+                    <li><a class="dropdown-item text-white py-2 small fw-bold border-bottom border-secondary" href="{{ route('home') }}">ALL CATEGORIES</a></li>
+                    <li><a class="dropdown-item text-white py-2 small text-uppercase" href="{{ route('home', ['category' => 1]) }}"><i class="fa-solid fa-angle-right me-2 text-danger"></i>LAPTOPS</a></li>
+                    <li><a class="dropdown-item text-white py-2 small text-uppercase" href="{{ route('home', ['category' => 2]) }}"><i class="fa-solid fa-angle-right me-2 text-danger"></i>SMARTPHONES</a></li>
+                    <li><a class="dropdown-item text-white py-2 small text-uppercase" href="{{ route('home', ['category' => 3]) }}"><i class="fa-solid fa-angle-right me-2 text-danger"></i>CAMERAS</a></li>
+                </ul>
+            </div>
+
+            <nav class="d-flex gap-4 fw-bold small">
+                <a href="{{ route('home') }}" class="text-danger text-decoration-none">HOME</a>
+                <a href="{{ route('home', ['category' => 1]) }}" class="text-dark text-decoration-none">LAPTOPS</a>
+                <a href="{{ route('home', ['category' => 2]) }}" class="text-dark text-decoration-none">SMARTPHONES</a>
+                <a href="{{ route('home', ['category' => 3]) }}" class="text-dark text-decoration-none">CAMERAS</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container">
+        @yield('content')
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h3>E-SHOP</h3>
+                    <p class="small text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut.</p>
+                    <ul class="list-unstyled small d-flex flex-column gap-2">
+                        <li><i class="fa fa-map-marker text-danger me-2"></i> Nisantasi unv kampus room 5</li>
+                        <li><i class="fa fa-phone text-danger me-2"></i> +212-00-00-00</li>
+                        <li><i class="fa fa-envelope text-danger me-2"></i> yuksel.celik@nisantasi.edu.tr</li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h3>Customer Service</h3>
+                    <ul class="list-unstyled small d-flex flex-column gap-2">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Shipping & Return</a></li>
+                        <li><a href="#">Shipping Guide</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h3>Stay Connected</h3>
+                    <p class="small text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
