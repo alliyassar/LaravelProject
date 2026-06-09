@@ -1,37 +1,31 @@
-@extends('layouts.home')
+@extends('welcome')
 
-@section('title')
-    My Cart
-@endsection
+@section('title') My Cart @endsection
 
 @section('content')
-<div class="container mt-5">
-    <div class="breadcrumbs">
-        <a href="{{ route('home') }}">Home</a> / <span>My Cart</span>
-    </div>
-
-    @if(session('success'))
-        <div class="alert alert-success mt-3">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger mt-3">{{ session('error') }}</div>
-    @endif
-
-    <div class="card shadow mt-4">
+<div class="container">
+    <div class="card shadow">
         <div class="card-header bg-dark text-white">
-            <h4 class="mb-0">My Cart</h4>
+            <h4 class="mb-0"><i class="fa-solid fa-cart-shopping me-2"></i>My Cart</h4>
         </div>
         <div class="card-body">
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+
             @if($cartItems->count() > 0)
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped align-middle">
+                    <table class="table table-bordered table-hover align-middle">
                         <thead class="table-light">
                             <tr>
                                 <th>Product</th>
                                 <th>Price</th>
                                 <th>Quantity</th>
                                 <th>Total</th>
-                                <th>Actions</th>
+                                <th class="text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -42,28 +36,21 @@
                                     $subtotal += $lineTotal;
                                 @endphp
                                 <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            @if($item->product && $item->product->image)
-                                                <img src="{{ asset('storage/' . $item->product->image) }}" alt="" style="width: 50px; height: 50px; object-fit: cover;" class="me-2">
-                                            @endif
-                                            <span class="fw-bold">{{ $item->product->name ?? 'Product Deleted' }}</span>
-                                        </div>
-                                    </td>
+                                    <td class="fw-bold">{{ $item->product->title ?? 'Product Deleted' }}</td>
                                     <td>${{ number_format($item->price, 2) }}</td>
                                     <td>
-                                        <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex gap-2 align-items-center">
+                                        <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex align-items-center" style="max-width: 150px;">
                                             @csrf
-                                            <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" class="form-control form-control-sm" style="width: 70px;">
-                                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                                            <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" class="form-control form-control-sm me-2">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
                                         </form>
                                     </td>
-                                    <td class="fw-bold">${{ number_format($lineTotal, 2) }}</td>
-                                    <td>
-                                        <form action="{{ route('cart.remove', $item->id) }}" method="POST" onsubmit="return confirm('Remove this product?')">
+                                    <td class="fw-bold text-dark">${{ number_format($lineTotal, 2) }}</td>
+                                    <td class="text-center">
+                                        <form action="{{ route('cart.remove', $item->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                            <button type="submit" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash-can"></i> Remove</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -74,17 +61,20 @@
 
                 <div class="row justify-content-end mt-4">
                     <div class="col-md-4">
-                        <div class="border p-3 rounded bg-light">
-                            <p class="d-flex justify-content-between"><span>SUBTOTAL:</span> <strong>${{ number_format($subtotal, 2) }}</strong></p>
-                            <p class="d-flex justify-content-between"><span>TOTAL:</span> <strong class="text-success">${{ number_format($subtotal, 2) }}</strong></p>
-                            <hr>
-                            <a href="{{ route('checkout') }}" class="btn btn-success w-100 fw-bold">Checkout</a>
+                        <div class="bg-light p-3 rounded border shadow-sm">
+                            <p class="d-flex justify-content-between mb-2"><span>SUBTOTAL</span> <span>${{ number_format($subtotal, 2) }}</span></p>
+                            <h5 class="d-flex justify-content-between border-top pt-2 mt-2 text-success"><span>TOTAL</span> <strong>${{ number_format($subtotal, 2) }}</strong></h5>
+                            <div class="d-grid gap-2 mt-3">
+                                <a href="{{ route('checkout') }}" class="btn btn-primary"><i class="fa-solid fa-credit-card me-2"></i>Proceed to Checkout</a>
+                            </div>
                         </div>
                     </div>
                 </div>
             @else
                 <div class="text-center py-5">
+                    <i class="fa-solid fa-basket-shopping text-muted mb-3" style="font-size: 48px;"></i>
                     <p class="text-muted fs-5">Your cart is empty.</p>
+                    <a href="{{ url('/') }}" class="btn btn-primary btn-sm">Continue Shopping</a>
                 </div>
             @endif
         </div>

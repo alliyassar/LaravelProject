@@ -2,97 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Product;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
-    /**
-     * Kullanıcının sepetindeki ürünleri listeler.
-     */
     public function index()
     {
-        $cartItems = Cart::with('product')
-            ->where('user_id', Auth::id())
-            ->get();
+        // Giriş yapılmadıysa çökme, boş koleksiyon gönder kral
+        $cartItems = auth()->check() 
+            ? Cart::with('product')->where('user_id', auth()->id())->get() 
+            : collect();
+
         return view('home.cart', compact('cartItems'));
     }
 
-    /**
-     * Seçilen ürünü sepete ekler (Stok kontrolü yapar).
-     */
-    public function add(Request $request, $productId)
+    public function add(Request $request, Product $product)
     {
-        $request->validate([
-            'quantity' => 'nullable|integer|min:1',
-        ]);
-
-        $product = Product::findOrFail($productId);
-        $quantity = $request->quantity ?? 1;
-
-        if ($product->stock < $quantity) {
-            return back()->with('error', 'Not enough stock available.');
+        if (!auth()->check()) {
+            return redirect()->url('/login')->with('error', 'Please login to add products to cart.');
         }
 
-        $cart = Cart::where('user_id', Auth::id())
+        $request->validate([
+            'quantity' => 'required|integer|min:1'
+        ]);
+
+        $cartItem = Cart::where('user_id', auth()->id())
             ->where('product_id', $product->id)
             ->first();
 
-        if ($cart) {
-            $newQuantity = $cart->quantity + $quantity;
-            if ($product->stock < $newQuantity) {
-                return back()->with('error', 'Not enough stock available.');
-            }
-            $cart->update([
-                'quantity' => $newQuantity,
-                'price' => $product->price,
-            ]);
+        if ($cartItem) {
+            $cartItem->quantity += $request->quantity;
+            $cartItem->save();
         } else {
             Cart::create([
-                'user_id' => Auth::id(),
+                'user_id' => auth()->id(),
                 'product_id' => $product->id,
-                'quantity' => $quantity,
-                'price' => $product->price,
+                'quantity' => $request->quantity,
+                'price' => $product->price
             ]);
         }
 
-        return redirect()->route('cart.index')->with('success', 'Product added to cart.');
+        return redirect()->back()->with('success', 'Product added to cart successfully!');
     }
 
-    /**
-     * Sepetteki ürün adedini günceller.
-     */
-    public function update(Request $request, $cartId)
+    public function update(Request $request, Cart $cart)
     {
         $request->validate([
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'required|integer|min:1'
         ]);
-
-        $cart = Cart::where('user_id', Auth::id())
-            ->findOrFail($cartId);
-
-        if ($cart->product->stock < $request->quantity) {
-            return back()->with('error', 'Not enough stock available.');
-        }
 
         $cart->update([
-            'quantity' => $request->quantity,
+            'quantity' => $request->quantity
         ]);
 
-        return back()->with('success', 'Cart updated.');
+        return redirect()->back()->with('success', 'Cart updated successfully!');
     }
 
-    /**
-     * Ürünü sepetten tamamen siler.
-     */
-    public function remove($cartId)
+    public function remove(Cart $cart)
     {
-        $cart = Cart::where('user_id', Auth::id())
-            ->findOrFail($cartId);
         $cart->delete();
-
-        return back()->with('success', 'Product removed from cart.');
+        return redirect()->back()->with('success', 'Item removed from cart!');
     }
 }
