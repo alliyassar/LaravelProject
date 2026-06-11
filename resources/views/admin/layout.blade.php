@@ -49,25 +49,35 @@
     <div class="sidebar">
       <nav class="mt-3">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          
           <li class="nav-item">
             <a href="{{ route('admin.index') }}" class="nav-link {{ request()->routeIs('admin.index') ? 'active' : '' }}">
               <i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p>
             </a>
           </li>
+          
           <li class="nav-item">
-            <a href="#" class="nav-link"><i class="nav-icon fas fa-tags"></i><p>Categories</p></a>
+            <a href="/admin/categories" class="nav-link {{ request()->is('admin/categories*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-tags"></i><p>Categories</p>
+            </a>
           </li>
+          
           <li class="nav-item">
-            <a href="#" class="nav-link"><i class="nav-icon fas fa-box"></i><p>Products</p></a>
+            <a href="/admin/products" class="nav-link {{ request()->is('admin/products*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-box"></i><p>Products</p>
+            </a>
           </li>
+          
           <li class="nav-item">
             <a href="#" class="nav-link"><i class="nav-icon fas fa-star"></i><p>Reviews</p></a>
           </li>
+          
           <li class="nav-item">
             <a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
               <i class="nav-icon fas fa-shopping-cart"></i><p>Orders</p>
             </a>
           </li>
+          
           <li class="nav-item"><a href="#" class="nav-link"><i class="nav-icon fas fa-envelope"></i><p>Contact Messages</p></a></li>
           <li class="nav-item"><a href="#" class="nav-link"><i class="nav-icon fas fa-question-circle"></i><p>FAQ</p></a></li>
           <li class="nav-item"><a href="#" class="nav-link"><i class="nav-icon fas fa-cog"></i><p>Setting</p></a></li>
