@@ -141,9 +141,9 @@
                     <h3>E-SHOP</h3>
                     <p class="small text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut.</p>
                     <ul class="list-unstyled small d-flex flex-column gap-2">
-                        <li><i class="fa fa-map-marker text-danger me-2"></i> Nisantasi unv kampus room 5</li>
+                        <li><i class="fa fa-map-marker text-danger me-2"></i> Nisantasi Uni</li>
                         <li><i class="fa fa-phone text-danger me-2"></i> +212-00-00-00</li>
-                        <li><i class="fa fa-envelope text-danger me-2"></i> yuksel.celik@nisantasi.edu.tr</li>
+                        <li><i class="fa fa-envelope text-danger me-2"></i> aliyasarwork@gmail.com</li>
                     </ul>
                 </div>
                 <div class="col-md-4 mb-4">
